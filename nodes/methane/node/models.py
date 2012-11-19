@@ -187,7 +187,7 @@ class MoleculeTypes(models.Model):
 
 class PolyadSchemes(models.Model):
     polschid = models.IntegerField(primary_key=True)
-    moltypeid = models.ForeignKey(MoleculeTypes, db_column='moltypeid')
+### moltypeid = models.ForeignKey(MoleculeTypes, db_column='moltypeid')
     nbsublev0 = models.IntegerField()
     poldesid0 = models.ForeignKey(PolyadDescriptions, null=True, db_column='poldesid0', blank=True, related_name='rn_poldesid0')
     nbsublev1 = models.IntegerField()
