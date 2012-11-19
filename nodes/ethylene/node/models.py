@@ -8,6 +8,15 @@
 # into your database.
 
 from django.db import models
+from dictionaries import RETURNABLES
+
+NODEID = RETURNABLES['NodeID']
+source_prefix = 'B%s-' % NODEID
+func_prefix = 'F%s-' % NODEID
+env_prefix = 'E%s-' % NODEID
+allenv = ('self','N2','O2','air','H2O','CO2','H2','He','Ar')                                       # all broadening environments
+curenvid = (0,1,2,6)                                                                               # current environment ids e.g. 1,6 = N2,H2
+
 
 class TransitionTypes(models.Model):
     typeid = models.IntegerField(primary_key=True)
@@ -184,7 +193,7 @@ class MoleculeTypes(models.Model):
 
 class PolyadSchemes(models.Model):
     polschid = models.IntegerField(primary_key=True)
-    moltypeid = models.ForeignKey(MoleculeTypes, db_column='moltypeid')
+### moltypeid = models.ForeignKey(MoleculeTypes, db_column='moltypeid')
     nbsublev0 = models.IntegerField()
     poldesid0 = models.ForeignKey(PolyadDescriptions, null=True, db_column='poldesid0', blank=True, related_name='rn_poldesid0')
     nbsublev1 = models.IntegerField()
@@ -280,7 +289,7 @@ class VibrationalSublevels(models.Model):
         return res
 
     def getQNsymName(self):
-        res =["Cv"]
+        res = ["Cv"]
         # X2Y4
         res += ["C1","C2" ,"C3" ,"C4" ,
                 "C5","C6" ,"C7" ,"C8" ,
@@ -475,3 +484,142 @@ class Transitions(models.Model):
     class Meta:
         db_table = u'transitions'
 
+###
+# thanks to hitran
+
+    def XML_Broadening(self):
+        """
+        Build and return the XML for the various broadening environments
+        gamma, delta, nexp
+
+        """
+
+        gamma = ( self.gamma1, self.gamma2, self.gamma3, self.gamma4, self.gamma5,
+                  self.gamma6, self.gamma7, self.gamma8, self.gamma9 )
+        gamma_prec = ( self.gamma1_prec, self.gamma2_prec, self.gamma3_prec, self.gamma4_prec, self.gamma5_prec,
+                       self.gamma6_prec, self.gamma7_prec, self.gamma8_prec, self.gamma9_prec )
+        gamma_sourceid = ( self.gamma1_sourceid, self.gamma2_sourceid, self.gamma3_sourceid, self.gamma4_sourceid, self.gamma5_sourceid,
+                           self.gamma6_sourceid, self.gamma7_sourceid, self.gamma8_sourceid, self.gamma9_sourceid )
+       #delta = ( self.delta1, self.delta2, self.delta3, self.delta4, self.delta5,
+       #          self.delta6, self.delta7, self.delta8, self.delta9 )
+       #delta_prec = ( self.delta1_prec, self.delta2_prec, self.delta3_prec, self.delta4_prec, self.delta5_prec,
+       #               self.delta6_prec, self.delta7_prec, self.delta8_prec, self.delta9_prec )
+       #delta_sourceid = ( self.delta1_sourceid, self.delta2_sourceid, self.delta3_sourceid, self.delta4_sourceid, self.delta5_sourceid,
+       #                   self.delta6_sourceid, self.delta7_sourceid, self.delta8_sourceid, self.delta9_sourceid )
+        nexp = ( self.nexp1, self.nexp2, self.nexp3, self.nexp4, self.nexp5,
+                 self.nexp6, self.nexp7, self.nexp8, self.nexp9 )
+        nexp_prec = ( self.nexp1_prec, self.nexp2_prec, self.nexp3_prec, self.nexp4_prec, self.nexp5_prec,
+                      self.nexp6_prec, self.nexp7_prec, self.nexp8_prec, self.nexp9_prec )
+        nexp_sourceid = ( self.nexp1_sourceid, self.nexp2_sourceid, self.nexp3_sourceid, self.nexp4_sourceid, self.nexp5_sourceid,
+                          self.nexp6_sourceid, self.nexp7_sourceid, self.nexp8_sourceid, self.nexp9_sourceid )
+
+        broadening_xml = []
+        for idc in curenvid:
+            lineshape_xml = []
+            lineshape_xml.append('      <Lineshape name="Lorentzian">\n'\
+                   '      <Comments>The temperature-dependent pressure'\
+                   ' broadening Lorentzian lineshape</Comments>\n'\
+                   '      <LineshapeParameter name="gammaL">\n'\
+                   '        <FitParameters functionRef="%sgammaL">\n'\
+                   '          <FitArgument name="T" units="K">\n'\
+                   '          </FitArgument>\n'\
+                   '          <FitParameter name="gammaL_ref">\n'
+                   % func_prefix)
+            if gamma_sourceid[idc]:
+                lineshape_xml.append('           <SourceRef>%s%s</SourceRef>\n'
+                                     % (source_prefix, gamma_sourceid[idc]))
+            lineshape_xml.append('            <Value units="1/cm">%s</Value>\n'
+                                 % gamma[idc])
+            lineshape_xml.append('            <Accuracy type="statistical" relative="true"'
+                                 '>%s</Accuracy>\n' % str(gamma_prec[idc]))
+            lineshape_xml.append('          </FitParameter>\n')
+            lineshape_xml.append('          <FitParameter name="n">\n')
+            if nexp_sourceid[idc]:
+                lineshape_xml.append('            <SourceRef>%s%s'
+                                     '</SourceRef>\n' % (source_prefix, nexp_sourceid[idc]))
+            lineshape_xml.append('            <Value units="unitless">%s'
+                                 '</Value>\n' % nexp[idc])
+            lineshape_xml.append('            <Accuracy type="statistical" relative="true"'
+                                 '>%s</Accuracy>\n' % str(nexp_prec[idc]))
+            lineshape_xml.append('          </FitParameter>\n')
+            lineshape_xml.append('        </FitParameters>\n'\
+                                 '      </LineshapeParameter>\n</Lineshape>\n')
+            broadening_xml.append('    <Broadening'
+                ' envRef="%sBroadening-%s" name="pressure">\n'
+                '%s    </Broadening>\n' % (env_prefix, allenv[idc], ''.join(lineshape_xml)))
+        return '    %s\n' % ''.join(broadening_xml)
+
+#
+###
+
+###
+# thanks to smpo
+
+class FunArg(object):
+    def __init__(self, arg):
+        self.name = arg[0]
+        if len(arg)>1:
+            self.units = arg[1]
+        else:
+            self.units = 'unitless'
+        if len(arg)>2:
+            self.low = arg[2]
+        else:
+           #self.low = ''
+            self.low = 0                                                                           # must be double
+        if len(arg)>3:
+            self.up = arg[3]
+        else:
+           #self.up = ''
+            self.up = 0                                                                            # must be double
+        if len(arg)>4:
+            self.descr = arg[4]
+        else:
+            self.descr = ''
+
+class FunParm(object):
+    def __init__(self, arg):
+        self.name = arg[0]
+        if len(arg)>1:
+            self.units = arg[1]
+        else:
+            self.units = 'unitless'
+        if len(arg)>2:
+            self.descr = arg[2]
+        else:
+            self.descr = ''
+
+class Function(object):
+    def __init__(self, id, name, clang, expr, yname, yunits, descr='', ydescr='', args=[], parms=[]):
+        self.id = id
+        self.name = name
+        self.clang = clang
+        self.expr = expr
+        self.yname = yname
+        self.yunits = yunits
+        self.descr = descr
+        self.ydescr = ydescr
+        if len(args)>0:
+            self.Arguments = []
+            for arg in args:
+                self.Arguments.append(FunArg(arg))
+        if len(parms)>0:
+            self.Parameters = []
+            for parm in parms:
+                self.Parameters.append(FunParm(parm))
+
+class EnvSpecie(object):
+    def __init__(self, name, fraction):
+        self.name = name
+        self.fraction = fraction
+
+class Environment(object):
+    def __init__(self, id, com, temp, press=(), species=[]):
+        self.id = id
+        self.comment = com
+        self.temperature = temp
+        self.pressure = press
+        if len(species)>0:
+            self.Species = []
+            for specie in species:
+                self.Species.append(EnvSpecie(specie[0],specie[1]))

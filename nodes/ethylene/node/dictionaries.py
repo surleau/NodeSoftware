@@ -23,7 +23,7 @@ RESTRICTABLES = CaselessDict({\
 
 RETURNABLES = CaselessDict({\
 'NodeID':'GSMA-C2H4',
-'XSAMSVersion':'1.0',
+'XSAMSVersion' : u'1.0',
 
 'SourceID':'Source.sourceid',
 'SourceAuthorName':'Source.extractRisVal("AU")',
@@ -67,10 +67,31 @@ RETURNABLES = CaselessDict({\
 'MethodDescription':'Method.name',
 'MethodID':'Method.typeid',
 
-'EnvironmentID': '1',
-'EnvironmentComment': 'Pressure and NumberDensity are not used in this data base',
-'EnvironmentTemperature': '296',
+'FunctionID': 'Function.id',
+'FunctionName': 'Function.name',
+'FunctionComputerLanguage': 'Function.clang',
+'FunctionExpression': 'Function.expr',
+'FunctionDescription': 'Function.descr',
+'FunctionYName': 'Function.yname',
+'FunctionYUnits': 'Function.yunits',
+'FunctionYDescription': 'Function.ydescr',
+'FunctionArgumentName': 'FunctionArgument.name',
+'FunctionArgumentUnits': 'FunctionArgument.units',
+'FunctionArgumentDescription': 'FunctionArgument.descr',
+'FunctionArgumentLowerLimit': 'FunctionArgument.low',
+'FunctionArgumentUpperLimit': 'FunctionArgument.up',
+'FunctionParameterName': 'FunctionParameter.name',
+'FunctionParameterUnits': 'FunctionParameter.units',
+'FunctionParameterDescription': 'FunctionParameter.descr',
+
+'EnvironmentID': 'Environment.id',
+'EnvironmentComment': 'Environment.comment',
+'EnvironmentTemperature': 'Environment.temperature',
 'EnvironmentTemperatureUnit': 'K',
+'EnvironmentTotalPressure': 'Environment.pressure',
+'EnvironmentTotalPressureUnit': 'atm',
+'EnvironmentSpeciesName': 'EnvSpecies.name',
+'EnvironmentSpeciesMoleFraction': 'EnvSpecies.fraction',
 
 ##########################################################################
 
@@ -78,7 +99,7 @@ RETURNABLES = CaselessDict({\
 'MoleculeCASRegistryNumber':'Molecule.casregnum',
 'MoleculeOrdinaryStructuralFormula':'C2H4',
 'MoleculeOrdinaryStructuralFormula':'Molecule.formtex',
-'MoleculeStoichiometricFormula':'H4C2',
+'MoleculeStoichiometricFormula':'C2H4',
 'MoleculeSpeciesID': 'Molecule.isotopeid',
 'MoleculeInchi':'Molecule.inchi',
 'MoleculeInchiKey':'Molecule.inchikey',
@@ -103,11 +124,13 @@ RETURNABLES = CaselessDict({\
 
 'MoleculeBasisStates': 'Molecule.BasisStates',
 'BasisStateID': 'MoleculeBasisState.sublevid',
-'MoleculeBQNviMode':'MoleculeBasisState.getQNviMode()',
-'MoleculeBQNvi':'MoleculeBasisState.getQNvi()',
-'MoleculeBQNrName':'MoleculeBasisState.getQNrName()',
-'MoleculeBQNr':'MoleculeBasisState.getQNr()',
-'MoleculeBQNsymName':'MoleculeBasisState.getQNsymName()',
-'MoleculeBQNsym':'MoleculeBasisState.getQNsym()',
+'BasisStateQNviMode':'MoleculeBasisState.getQNviMode()',
+'BasisStateQNvi':'MoleculeBasisState.getQNvi()',
+###'BasisStateQNliMode':'MoleculeBasisState.getQNliMode()',
+###'BasisStateQNli':'MoleculeBasisState.getQNli()',
+'BasisStateQNrName':'MoleculeBasisState.getQNrName()',
+'BasisStateQNr':'MoleculeBasisState.getQNr()',
+'BasisStateQNsymName':'MoleculeBasisState.getQNsymName()',
+'BasisStateQNsym':'MoleculeBasisState.getQNsym()',
 
 })
